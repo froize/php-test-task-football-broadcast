@@ -4,7 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
           crossorigin="anonymous">
 
     <title>{{ match.tournament }} || {{ match.homeTeam.name }} – {{ match.awayTeam.name }}</title>
@@ -58,6 +59,7 @@
                     Трансляция
                 </div>
                 <div class="card-body">
+                    {% set goalsList = "" %}
                     {% for message in match.messages|reverse %}
                         {% set interestingMessageTypes = [constant('App\\Entity\\Match::GOAL_MESSAGE_TYPE'), constant('App\\Entity\\Match::YELLOW_CARD_MESSAGE_TYPE'), constant('App\\Entity\\Match::RED_CARD_MESSAGE_TYPE'), constant('App\\Entity\\Match::DANGEROUS_MOMENT_MESSAGE_TYPE')] %}
                         <div class="row mb-2 {{ message.type in interestingMessageTypes ? 'font-weight-bold' : '' }}">
@@ -68,6 +70,8 @@
                                 {% if message.type == constant('App\\Entity\\Match::REPLACE_PLAYER_MESSAGE_TYPE') %}
                                     <img src="https://www.soccer.ru/sites/all/themes/newtheme/images/events-icons/replacement.png">
                                 {% elseif message.type == constant('App\\Entity\\Match::GOAL_MESSAGE_TYPE') %}
+                                    {% set goalList = goalList ~ message.details.playerNumber %}
+                                    {{ message.details.playerNumber }}
                                     <img src="https://www.soccer.ru/sites/all/themes/newtheme/images/events-icons/goal.png">
                                 {% elseif message.type == constant('App\\Entity\\Match::YELLOW_CARD_MESSAGE_TYPE') %}
                                     <img src="https://www.soccer.ru/sites/all/themes/newtheme/images/events-icons/card.png">
@@ -85,8 +89,8 @@
         </div>
         <div class="col-md-4">
             {% import _self as render %}
-            {{ render.renderTeamInfo(match.homeTeam) }}
-            {{ render.renderTeamInfo(match.awayTeam) }}
+            {{ render.renderTeamInfo(match.homeTeam, goalList) }}
+            {{ render.renderTeamInfo(match.awayTeam, goalList) }}
         </div>
     </div>
 </div>
@@ -121,12 +125,95 @@
                         </td>
                         <td>
                             {{ player.name }}
+                            {% if player.goals > 0 %}
+                                {% for i in range(1, player.goals) %}
+                                    <img src="https://www.soccer.ru/sites/all/themes/newtheme/images/events-icons/goal.png">
+                                {% endfor %}
+                            {% endif %}
+                            {% if player.goals > 0 %}
+                                {% for i in range(1, player.yellowCards) %}
+                                    <img src="https://www.soccer.ru/sites/all/themes/newtheme/images/events-icons/card.png">
+                                {% endfor %}
+                            {% endif %}
                         </td>
                         <td>
                             {{ player.playTime }}’
                         </td>
                     </tr>
                 {% endfor %}
+                </tbody>
+            </table>
+            <table class="table table">
+                <thead>
+                <tr>
+                    <th>Позиция</th>
+                    <th></th>
+                    <th>Время на поле</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                <tr>
+                    <td>
+                        Вратари
+                    </td>
+                    <td></td>
+                    <td>
+                        {% set timeOnField = 0 %}
+                        {% for player in team.players %}
+                            {% if player.position == "В" %}
+                                {% set timeOnField = timeOnField + player.playTime %}
+                            {% endif %}
+                        {% endfor %}
+                        {{ timeOnField }}’
+                    </td>
+                <tr>
+                    <td>
+                        Защитники
+                    </td>
+                    <td></td>
+                    <td>
+                        {% set timeOnField = 0 %}
+                        {% for player in team.players %}
+                            {% if player.position == "З" %}
+                                {% set timeOnField = timeOnField + player.playTime %}
+                            {% endif %}
+                        {% endfor %}
+                        {{ timeOnField }}’
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Полузащитники
+                    </td>
+                    <td></td>
+                    <td>
+                        {% set timeOnField = 0 %}
+                        {% for player in team.players %}
+                            {% if player.position == "П" %}
+                                {% set timeOnField = timeOnField + player.playTime %}
+                            {% endif %}
+                        {% endfor %}
+                        {{ timeOnField }}’
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Нападающие
+                    </td>
+                    <td></td>
+                    <td>
+                        {% set timeOnField = 0 %}
+                        {% for player in team.players %}
+                            {% if player.position == "Н" %}
+                                {% set timeOnField = timeOnField + player.playTime %}
+                            {% endif %}
+                        {% endfor %}
+                        {{ timeOnField }}’
+                    </td>
+
+                </tr>
+
                 </tbody>
             </table>
         </div>

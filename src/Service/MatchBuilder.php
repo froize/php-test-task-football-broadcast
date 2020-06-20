@@ -73,7 +73,7 @@ class MatchBuilder
         $teamInfo = $event['details']["team$teamNumber"];
         $players = [];
         foreach ($teamInfo['players'] as $playerInfo) {
-            $players[] = new Player($playerInfo['number'], $playerInfo['name']);
+            $players[] = new Player($playerInfo['number'], $playerInfo['name'], $playerInfo['position']);
         }
 
         return new Team($teamInfo['title'], $teamInfo['country'], $teamInfo['logo'], $players, $teamInfo['coach']);
@@ -85,11 +85,11 @@ class MatchBuilder
         foreach ($logs as $event) {
             $minute = $event['time'];
             $details = $event['details'];
-
+            $startPeriodExtraTime = 0;
             switch ($event['type']) {
                 case 'startPeriod':
                     $period++;
-
+                    $minute = 0;
                     $players = $details['team1']['startPlayerNumbers'] ?? [];
                     if (count($players)) {
                         $this->goToPlay($match->getHomeTeam(), $players, $minute);
@@ -101,6 +101,7 @@ class MatchBuilder
                     break;
                 case 'finishPeriod':
                     if ($period === 2) {
+                        $minute += $startPeriodExtraTime;
                         $this->goToBenchAllPlayers($match->getHomeTeam(), $minute);
                         $this->goToBenchAllPlayers($match->getAwayTeam(), $minute);
                     }
@@ -113,7 +114,13 @@ class MatchBuilder
                 case 'goal':
                     $team = $this->getTeamByName($match, $details['team']);
                     $team->addGoal();
+                    $player = $this->getPlayerByTeam($team, $details['playerNumber']);
+                    $player->addGoal();
                     break;
+                case 'yellowCard':
+                    $team = $this->getTeamByName($match, $details['team']);
+                    $player = $this->getPlayerByTeam($team, $details['playerNumber']);
+                    $player->addYellowCard();
 
             }
 
@@ -182,6 +189,21 @@ class MatchBuilder
                 $name,
                 $match->getHomeTeam()->getName(),
                 $match->getAwayTeam()->getName()
+            )
+        );
+    }
+    private function getPlayerByTeam(Team $team, int $number): Player
+    {
+        if ($team->getPlayer($number)->getNumber() === $number) {
+            return $team->getPlayer($number);
+        }
+
+        throw new \Exception(
+            sprintf(
+                'Player with number "%s" not found. Available player: "%s" ("%d").',
+                $number,
+                $team->getPlayer($number)->getName(),
+                $team->getPlayer($number)->getNumber()
             )
         );
     }

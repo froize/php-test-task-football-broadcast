@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Entity;
 
 class Player
@@ -11,14 +12,57 @@ class Player
     private string $playStatus;
     private int $inMinute;
     private int $outMinute;
+    private int $goals;
+    private int $yellowCards;
+    private int $redCards;
+    private string $position;
 
-    public function __construct(int $number, string $name)
+    public function __construct(int $number, string $name, string $position)
     {
         $this->number = $number;
         $this->name = $name;
         $this->playStatus = self::BENCH_PLAY_STATUS;
         $this->inMinute = 0;
         $this->outMinute = 0;
+        $this->goals = 0;
+        $this->yellowCards = 0;
+        $this->redCards = 0;
+        $this->position = $position;
+    }
+
+
+    public function getPosition(): string
+    {
+        return $this->position;
+    }
+    public function addYellowCard(): void
+    {
+        $this->yellowCards++;
+    }
+
+    public function getYellowCards(): int
+    {
+        return $this->yellowCards;
+    }
+
+    public function addRedCard(): void
+    {
+        $this->redCards++;
+    }
+
+    public function getRedCards(): int
+    {
+        return $this->redCards;
+    }
+
+    public function addGoal(): void
+    {
+        $this->goals++;
+    }
+
+    public function getGoals(): int
+    {
+        return $this->goals;
     }
 
     public function getNumber(): int
@@ -48,7 +92,7 @@ class Player
 
     public function getPlayTime(): int
     {
-        if(!$this->outMinute) {
+        if (!$this->outMinute) {
             return 0;
         }
 
